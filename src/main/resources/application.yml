@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: mcp-stateful-server-java
+    
+  profiles:
+    active: default
+
+logging:
+  level:
+    com.example.mcpstateful: INFO
+    org.springframework.ai.mcp: DEBUG
+    root: WARN
+    
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+server:
+  port: 8080
+  
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
