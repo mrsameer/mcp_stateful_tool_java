@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Inspector Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .endpoint h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.disconnected { background: #f8d7da; color: #721c24; }
+        .status.connecting { background: #fff3cd; color: #856404; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .tool-section {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .tool-section h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 MCP Inspector Test Page</h1>
+    <p>Test the streaming capabilities of your MCP server</p>
+
+    <div class="container">
+        <h2>Connection Status</h2>
+        <div id="websocket-status" class="status disconnected">WebSocket: Disconnected</div>
+        <div id="sse-status" class="status disconnected">SSE: Disconnected</div>
+        
+        <button onclick="connectWebSocket()">Connect WebSocket</button>
+        <button onclick="disconnectWebSocket()">Disconnect WebSocket</button>
+        <button onclick="connectSSE()">Connect SSE</button>
+        <button onclick="disconnectSSE()">Disconnect SSE</button>
+    </div>
+
+    <div class="container">
+        <h2>WebSocket Connection</h2>
+        <div class="endpoint">
+            <h3>Endpoint: ws://localhost:8080/mcp/ws</h3>
+            <p>Connect to the WebSocket endpoint for real-time MCP communication</p>
+        </div>
+        
+        <div class="tool-section">
+            <h4>Test Tool Execution</h4>
+            <select id="tool-select">
+                <option value="calculate">Calculator</option>
+                <option value="build_profile">Profile Builder</option>
+                <option value="create_file">Create File</option>
+                <option value="list_sessions">Session List</option>
+            </select>
+            <input type="text" id="tool-args" placeholder="Arguments (JSON)" value='{"expression": "5 + 3"}'>
+            <button onclick="executeToolWebSocket()">Execute via WebSocket</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Server-Sent Events (SSE)</h2>
+        <div class="endpoint">
+            <h3>Endpoint: http://localhost:8080/mcp/stream?clientId=inspector</h3>
+            <p>Connect to the SSE endpoint for streaming responses</p>
+        </div>
+        
+        <div class="tool-section">
+            <h4>Test Tool Execution</h4>
+            <select id="sse-tool-select">
+                <option value="calculate">Calculator</option>
+                <option value="build_profile">Profile Builder</option>
+                <option value="create_file">Create File</option>
+                <option value="list_sessions">Session List</option>
+            </select>
+            <input type="text" id="sse-tool-args" placeholder="Arguments (JSON)" value='{"expression": "10 * 5"}'>
+            <button onclick="executeToolSSE()">Execute via SSE</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Reactive Endpoints</h2>
+        <div class="endpoint">
+            <h3>Endpoint: http://localhost:8080/mcp/reactive/tools/stream</h3>
+            <p>Test the reactive streaming endpoints</p>
+        </div>
+        
+        <button onclick="testReactiveStream()">Test Reactive Stream</button>
+        <button onclick="getServerInfo()">Get Server Info</button>
+    </div>
+
+    <div class="container">
+        <h2>Connection Log</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let eventSource = null;
+        let clientId = 'inspector-' + Date.now();
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // WebSocket Functions
+        function connectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('WebSocket already connected');
+                return;
+            }
+
+            const status = document.getElementById('websocket-status');
+            status.className = 'status connecting';
+            status.textContent = 'WebSocket: Connecting...';
+
+            ws = new WebSocket('ws://localhost:8080/mcp/ws');
+
+            ws.onopen = function() {
+                status.className = 'status connected';
+                status.textContent = 'WebSocket: Connected';
+                log('WebSocket connected successfully');
+            };
+
+            ws.onmessage = function(event) {
+                log('WebSocket received: ' + event.data);
+            };
+
+            ws.onclose = function() {
+                status.className = 'status disconnected';
+                status.textContent = 'WebSocket: Disconnected';
+                log('WebSocket connection closed');
+            };
+
+            ws.onerror = function(error) {
+                status.className = 'status disconnected';
+                status.textContent = 'WebSocket: Error';
+                log('WebSocket error: ' + error);
+            };
+        }
+
+        function disconnectWebSocket() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function executeToolWebSocket() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('WebSocket not connected');
+                return;
+            }
+
+            const toolName = document.getElementById('tool-select').value;
+            const argsText = document.getElementById('tool-args').value;
+            
+            try {
+                const args = JSON.parse(argsText);
+                const message = {
+                    jsonrpc: "2.0",
+                    id: Date.now(),
+                    method: "tools/call",
+                    params: {
+                        name: toolName,
+                        arguments: args
+                    }
+                };
+
+                ws.send(JSON.stringify(message));
+                log('WebSocket sent tool execution request: ' + JSON.stringify(message));
+            } catch (e) {
+                log('Error parsing arguments: ' + e.message);
+            }
+        }
+
+        // SSE Functions
+        function connectSSE() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            const status = document.getElementById('sse-status');
+            status.className = 'status connecting';
+            status.textContent = 'SSE: Connecting...';
+
+            eventSource = new EventSource(`http://localhost:8080/mcp/stream?clientId=${clientId}`);
+
+            eventSource.onopen = function() {
+                status.className = 'status connected';
+                status.textContent = 'SSE: Connected';
+                log('SSE connected successfully');
+            };
+
+            eventSource.onmessage = function(event) {
+                log('SSE received: ' + event.data);
+            };
+
+            eventSource.onerror = function(error) {
+                status.className = 'status disconnected';
+                status.textContent = 'SSE: Error';
+                log('SSE error: ' + error);
+            };
+        }
+
+        function disconnectSSE() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        }
+
+        function executeToolSSE() {
+            const toolName = document.getElementById('sse-tool-select').value;
+            const argsText = document.getElementById('sse-tool-args').value;
+            
+            try {
+                const args = JSON.parse(argsText);
+                
+                // For SSE, we'll use the reactive endpoint
+                fetch(`http://localhost:8080/mcp/reactive/tools/execute-chunked?toolName=${toolName}&sessionId=${clientId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(args)
+                })
+                .then(response => response.text())
+                .then(data => {
+                    log('SSE tool execution result: ' + data);
+                })
+                .catch(error => {
+                    log('SSE tool execution error: ' + error);
+                });
+                
+            } catch (e) {
+                log('Error parsing arguments: ' + e.message);
+            }
+        }
+
+        // Reactive Functions
+        function testReactiveStream() {
+            log('Testing reactive stream...');
+            
+            fetch('http://localhost:8080/mcp/reactive/tools/list/stream')
+                .then(response => response.text())
+                .then(data => {
+                    log('Reactive stream response: ' + data);
+                })
+                .catch(error => {
+                    log('Reactive stream error: ' + error);
+                });
+        }
+
+        function getServerInfo() {
+            fetch('http://localhost:8080/mcp/reactive/info')
+                .then(response => response.json())
+                .then(data => {
+                    log('Server info: ' + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    log('Server info error: ' + error);
+                });
+        }
+
+        // Initialize
+        log('MCP Inspector Test Page loaded');
+        log('Client ID: ' + clientId);
+    </script>
+</body>
+</html>

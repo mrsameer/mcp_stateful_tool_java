@@ -4,6 +4,11 @@
 echo "🤖 MCP Stateful Tool Java Server"
 echo "================================="
 
+lsof -ti:8080 | xargs kill -9 2>/dev/null || echo "   No existing processes on port 8080"
+
+# Set JAVA_HOME to a valid JDK
+export JAVA_HOME="/Users/shaiksameer/Library/Java/JavaVirtualMachines/openjdk-21.0.2/Contents/Home"
+
 # Check if Java is installed
 if ! command -v java &> /dev/null; then
     echo "❌ Java is not installed. Please install Java 21 or higher."

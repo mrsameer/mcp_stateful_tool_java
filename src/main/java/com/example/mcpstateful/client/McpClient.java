@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class McpClient {
     
-    private static final String DEFAULT_SERVER_URL = "http://localhost:8081/mcp";
+    private static final String DEFAULT_SERVER_URL = "http://localhost:8080/mcp";
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;

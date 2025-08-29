@@ -9,6 +9,7 @@ logging:
   level:
     com.example.mcpstateful: INFO
     org.springframework.ai.mcp: DEBUG
+    org.springframework.web.socket: DEBUG
     root: WARN
     
   pattern:
@@ -25,3 +26,10 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+
+# CORS configuration for MCP Inspector
+cors:
+  allowed-origins: "*"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: true

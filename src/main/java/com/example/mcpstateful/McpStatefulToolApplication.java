@@ -22,10 +22,18 @@ public class McpStatefulToolApplication {
     @EventListener(ApplicationReadyEvent.class)
     public void serverReady() {
         System.out.println("✅ MCP Server is ready for connections on http://localhost:8080/mcp");
-        System.out.println("📚 Available endpoints:");
+        System.out.println("📚 Available REST endpoints:");
         System.out.println("  - POST /mcp/initialize");
         System.out.println("  - POST /mcp/tools/list");
         System.out.println("  - POST /mcp/tools/call");
         System.out.println("  - GET  /mcp/health");
+        System.out.println("📡 Available Streaming endpoints:");
+        System.out.println("  - WebSocket: /mcp/ws (with SockJS fallback)");
+        System.out.println("  - WebSocket Direct: /mcp/ws-direct");
+        System.out.println("  - SSE: /mcp/stream?clientId=<id>");
+        System.out.println("  - Reactive: /mcp/reactive/tools/stream");
+        System.out.println("🔗 MCP Inspector can connect to:");
+        System.out.println("  - WebSocket: ws://localhost:8080/mcp/ws");
+        System.out.println("  - SSE: http://localhost:8080/mcp/stream?clientId=inspector");
     }
 }
