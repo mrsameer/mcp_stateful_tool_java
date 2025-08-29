@@ -2,8 +2,8 @@ package com.example.mcpstateful.tools;
 
 import com.example.mcpstateful.state.ToolSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.mcpstateful.mcp.McpTool;
-import org.springframework.stereotype.Component;
+import com.example.mcpstateful.function.FunctionCallback;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,14 +20,20 @@ import java.util.Map;
  * This tool demonstrates how to progressively collect user information
  * and create structured profiles with optional file persistence.
  */
-@Component
-@McpTool(
-    name = "build_profile",
-    description = "Build a user profile by collecting information across multiple interactions. Can gather name, email, preferences, and other details progressively."
-)
-public class ProfileBuilderTool extends StatefulToolBase {
+@Service
+public class ProfileBuilderTool extends StatefulToolBase implements FunctionCallback {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public String getName() {
+        return "build_profile";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Build a user profile by collecting information across multiple interactions. Can gather name, email, preferences, and other details progressively.";
+    }
 
     @Override
     public String getToolName() {
@@ -42,6 +48,12 @@ public class ProfileBuilderTool extends StatefulToolBase {
             "age", "User's age (as a number)",
             "preferences", "User preferences or interests (comma-separated list)"
         );
+    }
+
+    @Override
+    public String call(String functionArguments) {
+        // For stateful tools, this method is not the primary entry point
+        return execute(Map.of());
     }
 
     @Override

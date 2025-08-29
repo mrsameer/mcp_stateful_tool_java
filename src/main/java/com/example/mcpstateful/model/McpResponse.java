@@ -1,15 +1,18 @@
-package com.example.mcpstateful.mcp;
+package com.example.mcpstateful.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents an MCP response message.
+ * MCP protocol response model.
  */
 public class McpResponse {
+    @JsonProperty("jsonrpc")
     private String jsonrpc = "2.0";
+    
     private Object id;
     private Object result;
     private McpError error;
 
-    // Constructors
     public McpResponse() {}
 
     public McpResponse(Object id, Object result) {
@@ -22,7 +25,6 @@ public class McpResponse {
         this.error = error;
     }
 
-    // Getters and Setters
     public String getJsonrpc() {
         return jsonrpc;
     }
@@ -55,13 +57,9 @@ public class McpResponse {
         this.error = error;
     }
 
-    /**
-     * MCP Error representation.
-     */
     public static class McpError {
         private int code;
         private String message;
-        private Object data;
 
         public McpError() {}
 
@@ -70,13 +68,6 @@ public class McpResponse {
             this.message = message;
         }
 
-        public McpError(int code, String message, Object data) {
-            this.code = code;
-            this.message = message;
-            this.data = data;
-        }
-
-        // Getters and Setters
         public int getCode() {
             return code;
         }
@@ -91,14 +82,6 @@ public class McpResponse {
 
         public void setMessage(String message) {
             this.message = message;
-        }
-
-        public Object getData() {
-            return data;
-        }
-
-        public void setData(Object data) {
-            this.data = data;
         }
     }
 }

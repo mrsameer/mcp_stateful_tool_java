@@ -1,26 +1,26 @@
-package com.example.mcpstateful.mcp;
+package com.example.mcpstateful.model;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents an MCP request message.
+ * MCP protocol request model.
  */
 public class McpRequest {
+    @JsonProperty("jsonrpc")
     private String jsonrpc = "2.0";
+    
     private Object id;
     private String method;
-    private Map<String, Object> params;
+    private Object params;
 
-    // Constructors
     public McpRequest() {}
 
-    public McpRequest(Object id, String method, Map<String, Object> params) {
+    public McpRequest(Object id, String method, Object params) {
         this.id = id;
         this.method = method;
         this.params = params;
     }
 
-    // Getters and Setters
     public String getJsonrpc() {
         return jsonrpc;
     }
@@ -45,11 +45,11 @@ public class McpRequest {
         this.method = method;
     }
 
-    public Map<String, Object> getParams() {
+    public Object getParams() {
         return params;
     }
 
-    public void setParams(Map<String, Object> params) {
+    public void setParams(Object params) {
         this.params = params;
     }
 }

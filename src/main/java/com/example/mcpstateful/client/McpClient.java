@@ -1,7 +1,7 @@
 package com.example.mcpstateful.client;
 
-import com.example.mcpstateful.mcp.McpRequest;
-import com.example.mcpstateful.mcp.McpResponse;
+import com.example.mcpstateful.model.McpRequest;
+import com.example.mcpstateful.model.McpResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;

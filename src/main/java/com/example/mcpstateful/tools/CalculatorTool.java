@@ -1,8 +1,8 @@
 package com.example.mcpstateful.tools;
 
 import com.example.mcpstateful.state.ToolSession;
-import com.example.mcpstateful.mcp.McpTool;
-import org.springframework.stereotype.Component;
+import com.example.mcpstateful.function.FunctionCallback;
+import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -15,12 +15,8 @@ import javax.script.ScriptEngineManager;
  * This tool demonstrates progressive parameter collection for mathematical calculations,
  * supporting different output formats and complex mathematical expressions.
  */
-@Component
-@McpTool(
-    name = "calculate",
-    description = "Perform mathematical calculations. Can collect parameters across multiple interactions."
-)
-public class CalculatorTool extends StatefulToolBase {
+@Service
+public class CalculatorTool extends StatefulToolBase implements FunctionCallback {
 
     private final ScriptEngine scriptEngine;
 
@@ -54,6 +50,23 @@ public class CalculatorTool extends StatefulToolBase {
         } else {
             System.out.println("✅ Using JavaScript engine: " + this.scriptEngine.getClass().getSimpleName());
         }
+    }
+
+    @Override
+    public String getName() {
+        return "calculate";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Perform mathematical calculations. Can collect parameters across multiple interactions.";
+    }
+
+    @Override
+    public String call(String functionArguments) {
+        // For stateful tools, this method is not the primary entry point
+        // The main execution happens through the execute() method
+        return execute(Map.of());
     }
 
     @Override

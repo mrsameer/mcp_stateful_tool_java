@@ -1,8 +1,8 @@
 package com.example.mcpstateful.tools;
 
 import com.example.mcpstateful.state.ToolSession;
-import com.example.mcpstateful.mcp.McpTool;
-import org.springframework.stereotype.Component;
+import com.example.mcpstateful.function.FunctionCallback;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,12 +18,18 @@ import java.util.Map;
  * across multiple interactions, providing a better user experience for
  * complex operations.
  */
-@Component
-@McpTool(
-    name = "create_file",
-    description = "Create a file with specified content. Can collect parameters across multiple interactions."
-)
-public class CreateFileTool extends StatefulToolBase {
+@Service
+public class CreateFileTool extends StatefulToolBase implements FunctionCallback {
+
+    @Override
+    public String getName() {
+        return "create_file";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Create a file with specified content. Can collect parameters across multiple interactions.";
+    }
 
     @Override
     public String getToolName() {
@@ -36,6 +42,12 @@ public class CreateFileTool extends StatefulToolBase {
             "file_path", "The path where the file should be created (e.g., /tmp/example.txt)",
             "content", "The content to write to the file"
         );
+    }
+
+    @Override
+    public String call(String functionArguments) {
+        // For stateful tools, this method is not the primary entry point
+        return execute(Map.of());
     }
 
     @Override

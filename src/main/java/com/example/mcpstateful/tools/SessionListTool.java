@@ -1,8 +1,8 @@
 package com.example.mcpstateful.tools;
 
 import com.example.mcpstateful.state.ToolSession;
-import com.example.mcpstateful.mcp.McpTool;
-import org.springframework.stereotype.Component;
+import com.example.mcpstateful.function.FunctionCallback;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
@@ -13,12 +13,18 @@ import java.util.Map;
  * active multi-turn conversations, helping with session management
  * and debugging.
  */
-@Component
-@McpTool(
-    name = "list_sessions",
-    description = "List all active conversation sessions"
-)
-public class SessionListTool extends StatefulToolBase {
+@Service
+public class SessionListTool extends StatefulToolBase implements FunctionCallback {
+
+    @Override
+    public String getName() {
+        return "list_sessions";
+    }
+
+    @Override
+    public String getDescription() {
+        return "List all active conversation sessions";
+    }
 
     @Override
     public String getToolName() {
@@ -29,6 +35,12 @@ public class SessionListTool extends StatefulToolBase {
     public Map<String, String> getRequiredParameters() {
         // This tool has no required parameters
         return Map.of();
+    }
+
+    @Override
+    public String call(String functionArguments) {
+        // For stateful tools, this method is not the primary entry point
+        return execute(Map.of());
     }
 
     @Override
