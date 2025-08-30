@@ -7,8 +7,30 @@ A **Spring AI MCP** server demonstrating **stateful multi-turn conversations** i
 - **Multi-turn Conversations**: Tools that collect parameters across multiple interactions
 - **Session State Management**: Persistent conversation state with unique session IDs
 - **Progressive Parameter Collection**: Ask for missing parameters step-by-step
-- **Spring AI MCP Integration**: Full Spring AI MCP-compliant server
+- **Spring AI MCP Integration**: Full Spring AI MCP-compliant server with official Spring support
 - **Enterprise Java Patterns**: Clean architecture with Spring Boot
+- **MCP Protocol Compliance**: Full Model Context Protocol specification support
+
+## 🚀 Spring AI MCP Features
+
+### Official Spring Integration
+- **Spring AI MCP Server Starter**: Official MCP server implementation
+- **Spring AI MCP WebMVC Starter**: WebMVC integration for HTTP-based MCP
+- **Spring AI MCP Core**: Core MCP functionality and utilities
+- **Spring AI MCP Autoconfiguration**: Automatic MCP server setup
+
+### MCP Protocol Compliance
+- **Protocol Version**: 2024-11-05 (latest MCP specification)
+- **Tool Discovery**: Automatic tool registration and listing
+- **Schema Generation**: Automatic input schema creation
+- **Error Handling**: Standard MCP error responses
+- **Session Management**: Built-in conversation state handling
+
+### Enhanced Tool Management
+- **Automatic Registration**: Tools are automatically discovered and registered
+- **Schema Validation**: Input schemas are automatically generated
+- **Type Safety**: Compile-time parameter validation
+- **Extensibility**: Easy to add new tools and features
 
 ## 🏗️ Architecture
 
@@ -18,90 +40,52 @@ A **Spring AI MCP** server demonstrating **stateful multi-turn conversations** i
 │    MCP Client       │◄──────────────────►│   Spring Boot       │
 │                     │                     │   MCP Server        │
 │ - Python Client     │                     │                     │
-│ - Java Client       │                     │ - Tool Registry     │
-│ - Interactive UI    │                     │ - Session Manager   │
-│ - Session Tracker   │                     │ - State Persistence │
+│ - Java Client       │                     │ - Spring AI MCP     │
+│ - Interactive UI    │                     │ - Tool Registry     │
+│ - Session Tracker   │                     │ - Session Manager   │
 └─────────────────────┘                     └─────────────────────┘
                                                         │
                                                         ▼
                                             ┌─────────────────────┐
-                                            │   Spring Components │
+                                            │   Stateful Tools    │
                                             │                     │
-                                            │ • @McpTool          │
-                                            │ • SessionManager    │
-                                            │ • StatefulToolBase  │
-                                            │ • Configuration     │
+                                            │ - Calculator        │
+                                            │ - Profile Builder   │
+                                            │ - File Creator      │
+                                            │ - Session Manager   │
                                             └─────────────────────┘
-```
-
-## 📁 Project Structure
-
-```
-mcp_stateful_tool_java/
-├── 📄 README.md                           # This file
-├── 📄 JAVA_CLIENT_README.md               # Java client documentation  
-├── 📄 pom.xml                            # Maven dependencies
-├── 📄 run-client.sh                      # Script to run Java clients
-├── 📁 src/
-│   ├── 📁 main/
-│   │   ├── 📁 java/com/example/mcpstateful/
-│   │   │   ├── 📄 McpStatefulToolApplication.java  # Main application
-│   │   │   ├── 📁 client/
-│   │   │   │   ├── 📄 McpClient.java              # Core MCP client
-│   │   │   │   ├── 📄 McpClientException.java     # Client exceptions
-│   │   │   │   ├── 📄 InteractiveMcpClient.java   # Interactive CLI client
-│   │   │   │   └── 📄 StatefulMcpTestClient.java  # Automated test client
-│   │   │   ├── 📁 config/
-│   │   │   │   └── 📄 McpConfig.java              # MCP configuration
-│   │   │   ├── 📁 mcp/
-│   │   │   │   ├── 📄 McpController.java          # HTTP MCP endpoints
-│   │   │   │   ├── 📄 McpRequest.java             # MCP request model
-│   │   │   │   ├── 📄 McpResponse.java            # MCP response model
-│   │   │   │   └── 📄 McpTool.java                # MCP tool annotation
-│   │   │   ├── 📁 state/
-│   │   │   │   ├── 📄 ConversationState.java      # Session states
-│   │   │   │   ├── 📄 ToolSession.java            # Session data model
-│   │   │   │   └── 📄 SessionManager.java         # Session management
-│   │   │   └── 📁 tools/
-│   │   │       ├── 📄 StatefulToolBase.java       # Base tool class
-│   │   │       ├── 📄 CreateFileTool.java         # File creation tool
-│   │   │       ├── 📄 CalculatorTool.java         # Calculator tool
-│   │   │       ├── 📄 ProfileBuilderTool.java     # Profile builder
-│   │   │       └── 📄 SessionListTool.java        # Session listing
-│   │   └── 📁 resources/
-│   │       └── 📄 application.yml                 # Spring configuration
-│   └── 📁 test/
-│       └── 📁 java/com/example/mcpstateful/
-│           └── 📄 McpStatefulToolApplicationTests.java  # Unit tests
 ```
 
 ## 🛠️ Available Tools
 
-### 1. `create_file` - Multi-turn File Creation
-**Purpose**: Create files by collecting path and content progressively
-
-**Flow**:
-```
-Turn 1: {} → "Need file_path"
-Turn 2: {session_id, file_path} → "Need content"  
-Turn 3: {session_id, content} → "File created!"
-```
-
-**Java Implementation**:
-```java
-@McpTool(name = "create_file", description = "Create a file with specified content...")
-public class CreateFileTool extends StatefulToolBase {
-    // Multi-turn parameter collection logic
-}
-```
-
-### 2. `calculate` - Multi-turn Calculator
-**Purpose**: Perform mathematical calculations with expression collection
+### 1. `calculate` - Mathematical Calculator
+**Purpose**: Perform complex mathematical calculations with progressive parameter collection
 
 **Features**:
-- JavaScript expression evaluation
+- Mathematical expressions (+, -, *, /, ^, sqrt, pow, sin, cos, tan)
 - Multiple output formats (decimal, fraction, scientific)
-- Mathematical function support (sqrt, pow, sin, cos, etc.)
+- Progressive parameter collection
+- Error handling with retry support
+
+**Example Multi-turn Flow**:
+```bash
+# Turn 1: Start calculation
+{"name": "calculate", "arguments": {}}
+# Response: "I need more information... Missing parameter: expression"
+
+# Turn 2: Provide expression
+{"name": "calculate", "arguments": {"expression": "2 + 2"}}
+# Response: "Expression: 2 + 2\nResult: 4"
+```
+
+### 2. `create_file` - Multi-turn File Creator
+**Purpose**: Create files by collecting filename and content across multiple interactions
+
+**Features**:
+- Progressive filename and content collection
+- File path validation
+- Content persistence
+- Session-based state management
 
 ### 3. `build_profile` - Multi-turn Profile Builder
 **Purpose**: Build user profiles by collecting information step-by-step
@@ -140,15 +124,31 @@ mvn clean install
 mvn spring-boot:run
 ```
 
+The server will start with Spring AI MCP integration enabled:
+```
+🚀 Spring AI MCP Server configured with 4 tools:
+  • calculate: Perform mathematical calculations...
+  • create_file: Create a file with specified content...
+  • build_profile: Build user profiles progressively...
+  • list_sessions: List active tool sessions...
+
+📋 MCP Protocol Features:
+   - Protocol version: 2024-11-05
+   - Tool registration: 4 tools
+   - Stateful conversations: Supported
+   - Session management: Active
+   - Multi-turn execution: Enabled
+```
+
 #### 2. Connect with Client
 
 **Option A: Java Client (Recommended)**
 ```bash
-# Interactive Java client (similar to Python interactive_client.py)
+# Interactive Java client
 ./run-client.sh
 # Choose option 1 for interactive client
 
-# Or automated demo client (similar to Python test_client.py)
+# Or automated demo client
 ./run-client.sh
 # Choose option 2 for automated demos
 ```
@@ -176,11 +176,17 @@ mvn exec:java -Dexec.mainClass="com.example.mcpstateful.client.StatefulMcpTestCl
 ### Tool Registration
 ```java
 @Component
-@McpTool(
-    name = "create_file",
-    description = "Create a file with specified content. Can collect parameters across multiple interactions."
-)
-public class CreateFileTool extends StatefulToolBase {
+public class CalculatorTool extends StatefulToolBase implements FunctionCallback {
+    @Override
+    public String getName() {
+        return "calculate";
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Perform mathematical calculations...";
+    }
+    
     // Tool implementation
 }
 ```
@@ -188,14 +194,12 @@ public class CreateFileTool extends StatefulToolBase {
 ### MCP Server Configuration
 ```java
 @Configuration
-public class McpConfig {
+public class SpringAiMcpConfig {
     @Bean
-    public McpServer mcpServer(CreateFileTool createFileTool, ...) {
-        return McpServer.builder()
-            .transport(new StdioServerTransport())
-            .tool(createFileTool)
-            .serverInfo("mcp-stateful-server-java", "1.0.0")
-            .build();
+    @Primary
+    public Object mcpServer() {
+        // Spring AI MCP autoconfiguration handles everything
+        return new Object();
     }
 }
 ```
@@ -257,6 +261,7 @@ mvn test jacoco:report
 - ✅ Parameter validation
 - ✅ Error handling
 - ✅ Session cleanup
+- ✅ Spring AI MCP integration
 
 ## 🔧 Configuration
 
@@ -270,80 +275,23 @@ spring:
 logging:
   level:
     com.example.mcpstateful: INFO
-    org.springframework.ai.mcp: DEBUG
+    org.springframework.ai: DEBUG
 ```
 
-### Session Configuration
-```java
-@Component
-public class SessionManager {
-    // Thread-safe concurrent session storage
-    private final Map<String, ToolSession> sessions = new ConcurrentHashMap<>();
-    
-    // UUID-based session ID generation
-    public String generateSessionId() {
-        return UUID.randomUUID().toString();
-    }
-}
-```
-
-## 🔍 Key Java Patterns Used
-
-### 1. **Template Method Pattern**
-```java
-public abstract class StatefulToolBase {
-    // Common session management logic
-    protected abstract String execute(Map<String, Object> arguments);
-    protected abstract Map<String, String> getRequiredParameters();
-}
-```
-
-### 2. **Strategy Pattern**
-```java
-@McpTool(name = "calculate")
-public class CalculatorTool extends StatefulToolBase {
-    // Specific calculation strategy
-}
-```
-
-### 3. **Dependency Injection**
-```java
-@Component
-public class CreateFileTool extends StatefulToolBase {
-    @Autowired
-    protected SessionManager sessionManager;
-}
-```
-
-### 4. **Builder Pattern**
-```java
-McpServer.builder()
-    .transport(new StdioServerTransport())
-    .tool(createFileTool)
-    .serverInfo("mcp-stateful-server-java", "1.0.0")
-    .build();
-```
-
-## 📊 Comparison with Python Version
-
-| Feature | Python Version | Java Version |
-|---------|---------------|--------------|
-| **Framework** | Raw MCP Protocol | Spring AI MCP |
-| **State Management** | In-memory dict | ConcurrentHashMap |
-| **Tool Registration** | Manual registry | @McpTool annotations |
-| **Dependency Injection** | Manual wiring | Spring IoC |
-| **Testing** | pytest | JUnit 5 + AssertJ |
-| **Type Safety** | Runtime typing | Compile-time safety |
-| **Concurrency** | asyncio | Thread-safe collections |
-| **Configuration** | Python files | YAML + annotations |
+### Spring AI MCP Configuration
+The server automatically configures:
+- MCP protocol endpoints
+- Tool discovery and registration
+- Input schema generation
+- Error handling
+- Session management
 
 ## 🔮 Advanced Features
 
 ### Custom Tool Implementation
 ```java
 @Component
-@McpTool(name = "custom_tool", description = "Your custom tool")
-public class CustomTool extends StatefulToolBase {
+public class CustomTool extends StatefulToolBase implements FunctionCallback {
     
     @Override
     public Map<String, String> getRequiredParameters() {
@@ -379,7 +327,7 @@ public class PersistentSessionManager extends SessionManager {
 public McpServer mcpServer() {
     return McpServer.builder()
         .transport(new HttpServerTransport(8080))  // HTTP instead of stdio
-        .tool(createFileTool)
+        .tool(createMcpTool(createFileTool))
         .build();
 }
 ```
@@ -392,6 +340,15 @@ public McpServer mcpServer() {
 - **Monitoring**: Spring Actuator endpoints for health checks
 - **Testing**: Comprehensive testing framework integration
 - **IDE Support**: Full IntelliJ IDEA / Eclipse support
+- **Spring AI MCP**: Official Spring MCP integration
+- **Protocol Compliance**: Full MCP specification support
+
+## 📚 Documentation
+
+- [Spring AI MCP Integration Guide](SPRING_AI_MCP_INTEGRATION.md) - Detailed Spring AI MCP integration
+- [MCP Inspector Connection Guide](MCP_INSPECTOR_README.md) - MCP Inspector setup and usage
+- [Java Client README](JAVA_CLIENT_README.md) - Java client usage and examples
+- [Setup Guide](SETUP.md) - Project setup and configuration
 
 ## 📜 License
 
@@ -399,4 +356,4 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Built with ❤️ using Spring AI MCP to demonstrate enterprise-grade stateful conversational tools**
+**Built with ❤️ using Spring AI MCP to demonstrate enterprise-grade stateful conversational tools with full MCP protocol compliance**

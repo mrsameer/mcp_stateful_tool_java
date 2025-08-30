@@ -31,6 +31,14 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -56,6 +64,34 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- Spring AI MCP Server Starter -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
+
+        <!-- Spring AI MCP Server WebMVC Starter -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
+
+        <!-- Spring AI MCP Core -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp</artifactId>
+            <version>${spring-ai.version}</version>
+        </dependency>
+
+        <!-- Spring AI Autoconfigure MCP Server -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-autoconfigure-mcp-server</artifactId>
+            <version>${spring-ai.version}</version>
         </dependency>
 
         <!-- JSON Processing -->
@@ -84,7 +120,6 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
             <plugin>
@@ -93,6 +128,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>

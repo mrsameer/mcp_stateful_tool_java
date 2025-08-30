@@ -95,4 +95,9 @@ public abstract class StatefulToolBase {
      * Abstract method to get the required parameters for this tool.
      */
     public abstract Map<String, String> getRequiredParameters();
+
+    /**
+     * Abstract method to get the tool description.
+     */
+    public abstract String getDescription();
 }
