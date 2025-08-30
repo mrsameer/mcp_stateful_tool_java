@@ -19,10 +19,10 @@ else
     echo "❌ README.md missing"
 fi
 
-if [ -f "SETUP.md" ]; then
-    echo "✅ SETUP.md found"
+if [ -f "src/main/resources/application.yml" ]; then
+    echo "✅ application.yml found"
 else
-    echo "❌ SETUP.md missing"
+    echo "❌ application.yml missing"
 fi
 
 if [ -d "src/main/java/com/example/mcpstateful" ]; then
@@ -65,24 +65,24 @@ else
     echo "❌ Session Manager missing"
 fi
 
-if [ -f "src/main/java/com/example/mcpstateful/mcp/McpController.java" ]; then
-    echo "✅ MCP Controller"
+if [ -f "src/main/java/com/example/mcpstateful/config/SpringAiMcpConfig.java" ]; then
+    echo "✅ Spring AI MCP Config"
 else
-    echo "❌ MCP Controller missing"
+    echo "❌ Spring AI MCP Config missing"
 fi
 
-# Count tools
-TOOL_COUNT=$(find src/main/java/com/example/mcpstateful/tools -name "*Tool.java" | wc -l)
-echo "✅ Tools: $TOOL_COUNT"
+# Count service tools
+SERVICE_COUNT=$(find src/main/java/com/example/mcpstateful/service -name "*Service.java" | wc -l)
+echo "✅ Stateful Services: $SERVICE_COUNT"
 
 echo ""
 
-# Show tools
-echo "🛠️  Available Tools:"
-echo "=================="
-for tool in src/main/java/com/example/mcpstateful/tools/*Tool.java; do
-    if [ -f "$tool" ]; then
-        basename "$tool" .java | sed 's/Tool$//'
+# Show services
+echo "🛠️  Available Stateful Tools:"
+echo "==========================="
+for service in src/main/java/com/example/mcpstateful/service/*Service.java; do
+    if [ -f "$service" ]; then
+        basename "$service" .java | sed 's/Service$//' | sed 's/Stateful//'
     fi
 done
 
@@ -111,10 +111,11 @@ echo ""
 echo "💡 Next Steps:"
 echo "=============="
 echo "1. Install JDK 21+ if not already installed"
-echo "2. Run './run.sh build' to build the project"
-echo "3. Run './run.sh test' to execute tests"
-echo "4. Run './run.sh run' to start the server"
-echo "5. Check SETUP.md for detailed instructions"
+echo "2. Run 'mvn clean compile' to build the project"
+echo "3. Run 'mvn test' to execute tests"
+echo "4. Run 'mvn spring-boot:run' to start the streamable HTTP MCP server"
+echo "5. Connect to http://localhost:8080/mcp with MCP Inspector"
+echo "6. Check README.md for detailed streamable HTTP configuration"
 
 echo ""
 echo "🎯 Project verification complete!"

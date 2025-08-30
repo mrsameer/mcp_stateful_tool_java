@@ -6,10 +6,17 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
 /**
- * Main application class for MCP Stateful Tool Java server.
+ * Main application class for MCP Stateful Tool Java server with Streamable HTTP transport.
  * 
  * This Spring Boot application demonstrates stateful multi-turn conversations
- * using Spring AI function callbacks with MCP protocol support.
+ * using Spring AI MCP framework with Streamable HTTP protocol support.
+ * 
+ * Key features:
+ * - Streamable HTTP transport (JSON-RPC over HTTP)
+ * - MCP endpoint: http://localhost:8080/mcp
+ * - Stateful tool conversations with session management
+ * - Compatible with MCP Inspector and other MCP clients
+ * - JSON-RPC 2.0 protocol implementation
  */
 @SpringBootApplication
 public class McpStatefulToolApplication {
@@ -21,19 +28,18 @@ public class McpStatefulToolApplication {
 
     @EventListener(ApplicationReadyEvent.class)
     public void serverReady() {
-        System.out.println("✅ Spring AI MCP Server is ready for connections");
-        System.out.println("⚠️  NOTE: Spring AI MCP 1.1.0-SNAPSHOT uses session-based transport");
-        System.out.println("🔗 For MCP Inspector, try connecting to:");
-        System.out.println("  - WebSocket: ws://localhost:8080/mcp/ws");
-        System.out.println("  - SSE: http://localhost:8080/sse");
-        System.out.println("  - REST (List Tools): POST http://localhost:8080/mcp/tools/list");
-        System.out.println("  - REST (Call Tool): POST http://localhost:8080/mcp/tools/call");
-        System.out.println("  - Health Check: http://localhost:8080/mcp/health");
-        System.out.println("📋 Spring AI MCP Protocol Features:");
-        System.out.println("  - Version: 2024-11-05");
-        System.out.println("  - Transport: WebFlux (WebSocket, SSE, Streamable HTTP)");
+        System.out.println("✅ Spring AI MCP Streamable HTTP Server is ready for connections");
+        System.out.println("🌐 MCP Streamable HTTP Endpoint: http://localhost:8080/mcp");
+        System.out.println("🔗 For MCP Inspector, connect to: http://localhost:8080/mcp");
+        System.out.println("📋 Available API Endpoints:");
+        System.out.println("  - MCP Protocol: POST http://localhost:8080/mcp");
+        System.out.println("  - Health Check: GET http://localhost:8080/actuator/health");
+        System.out.println("📋 MCP Streamable HTTP Features:");
+        System.out.println("  - Protocol Version: 2024-11-05");
+        System.out.println("  - Transport: Streamable HTTP (JSON-RPC over HTTP)");
         System.out.println("  - Tools: calculate, create_file, build_profile, list_sessions");
-        System.out.println("  - Stateful conversations: Enabled");
-        System.out.println("💡 Note: Spring AI MCP handles session management automatically");
+        System.out.println("  - Stateful Conversations: Enabled");
+        System.out.println("  - Session Management: Automatic");
+        System.out.println("💡 Connect with MCP Inspector using Streamable HTTP transport");
     }
 }

@@ -1,4 +1,6 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   application:
     name: mcp-stateful-server-java
     
@@ -7,16 +9,21 @@ spring:
       server:
         name: mcp-stateful-server-java
         version: 1.0.0
-        type: ASYNC  # Using ASYNC for WebFlux reactive server  
+        type: SYNC  # Use SYNC for Streamable HTTP MCP server
         enabled: true  
         stdio: false
         instructions: "This reactive server provides stateful tools for mathematical calculations and file operations with multi-turn conversations"
-        
+        protocol: STREAMABLE  # Correct property for Streamable HTTP MCP server
+        webflux:
+          enabled: false  # Explicitly disable default WebFlux transport
         capabilities:
           tool: true
           resource: true
           prompt: true
           completion: true
+        streamable-http:
+          mcp-endpoint: /mcp  # Default endpoint for MCP Inspector
+          keep-alive-interval: 30s  # Optional: enable keep-alive for SSE
 
 logging:
   level:

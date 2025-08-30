@@ -1,8 +1,10 @@
-# 🤖 MCP Stateful Tool Java Server
+# 🚀 MCP Stateful Tool Java Server (Streamable HTTP)
 
-A **Spring AI MCP** server demonstrating **stateful multi-turn conversations** with full **MCP Inspector compatibility**. This production-ready server maintains conversation state across multiple tool calls using Spring Boot and the official Spring AI MCP framework.
+A **Spring AI MCP** server with **Streamable HTTP transport** demonstrating **stateful multi-turn conversations**. This production-ready server provides real-time Server-Sent Events (SSE) streaming and maintains conversation state across multiple tool calls using Spring Boot and the official Spring AI MCP framework.
 
-## ✅ **WORKING STATUS: Server is fully operational with MCP Inspector's streamable HTTP client**
+## ✅ **MIGRATED TO STREAMABLE HTTP: Server now supports the latest MCP Streamable HTTP protocol**
+
+### 🌐 **Key Endpoint: `http://localhost:8080/mcp`**
 
 ## 🎯 What This Demonstrates
 
@@ -10,7 +12,8 @@ A **Spring AI MCP** server demonstrating **stateful multi-turn conversations** w
 - **Session State Management**: Persistent conversation state with unique session IDs
 - **Progressive Parameter Collection**: Ask for missing parameters step-by-step
 - **Spring AI MCP Integration**: Official Spring AI MCP-compliant server implementation
-- **SSE Transport**: Server-Sent Events for real-time MCP communication
+- **Streamable HTTP Transport**: Latest MCP transport with HTTP POST/GET and SSE streaming
+- **Real-time Notifications**: Server-Sent Events for tool, resource, and prompt changes
 - **MCP Inspector Ready**: Full compatibility with MCP Inspector's streamable HTTP client
 
 ## 🏗️ Architecture Overview
@@ -178,12 +181,11 @@ mvn spring-boot:run
 ```
 🤖 Starting MCP Stateful Tool Java Server...
 ✅ Spring AI MCP Server is ready for connections
-🔗 For MCP Inspector, try connecting to:
-  - SSE: http://localhost:8080/sse
-  - REST (List Tools): POST http://localhost:8080/mcp/tools/list
+🔗 MCP Streamable HTTP Endpoint: http://localhost:8080/mcp
+🔗 Server-Sent Events: http://localhost:8080/sse
 📋 Spring AI MCP Protocol Features:
   - Version: 2024-11-05
-  - Transport: WebFlux (WebSocket, SSE, Streamable HTTP)  
+  - Transport: Streamable HTTP (HTTP POST/GET + SSE)  
   - Tools: calculate, create_file, build_profile, list_sessions
   - Stateful conversations: Enabled
 ```
@@ -194,17 +196,177 @@ mvn spring-boot:run
 
 1. **Open MCP Inspector**
 2. **Select Connection Type**: `Streamable HTTP`
-3. **Enter Server URL**: `http://localhost:8080/sse`
+3. **Enter Server URL**: `http://localhost:8080/mcp`
 4. **Connect** - The server will automatically handle session management
 
 ```mermaid
 graph LR
     A[Open MCP Inspector] --> B[Select 'Streamable HTTP']
-    B --> C[Enter: http://localhost:8080/sse]
+    B --> C[Enter: http://localhost:8080/mcp]
     C --> D[Click Connect]
     D --> E[✅ Ready to use tools!]
     
     style E fill:#4caf50
+```
+
+## 🔌 MCP Client Configuration
+
+### Spring AI MCP Client
+
+Add the Spring AI MCP client dependency:
+
+```xml
+<dependency>
+    <groupId>org.springframework.ai</groupId>
+    <artifactId>spring-ai-mcp-client-streamable-webflux</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+</dependency>
+```
+
+Configure the client in your `application.yml`:
+
+```yaml
+spring:
+  ai:
+    mcp:
+      client:
+        transport:
+          type: streamable-http
+          streamable-http:
+            base-url: http://localhost:8080
+            mcp-endpoint: /mcp
+            sse-endpoint: /sse
+            timeout: 30s
+            keep-alive-enabled: true
+        capabilities:
+          tools: true
+          resources: true
+          prompts: true
+          completion: true
+```
+
+### Java Client Configuration
+
+```java
+@Configuration
+public class McpClientConfig {
+    
+    @Bean
+    public McpClient streamableHttpMcpClient() {
+        return McpClient.builder()
+            .transport(StreamableHttpTransport.builder()
+                .baseUrl("http://localhost:8080")
+                .mcpEndpoint("/mcp")
+                .sseEndpoint("/sse")
+                .timeout(Duration.ofSeconds(30))
+                .keepAliveEnabled(true)
+                .build())
+            .capabilities(McpCapabilities.builder()
+                .tools(true)
+                .resources(true)
+                .prompts(true)
+                .completion(true)
+                .build())
+            .build();
+    }
+}
+
+@Service  
+public class McpClientService {
+    
+    @Autowired
+    private McpClient mcpClient;
+    
+    public List<Tool> discoverTools() {
+        return mcpClient.listTools().getTools();
+    }
+    
+    public ToolResponse callTool(String toolName, Map<String, Object> arguments) {
+        return mcpClient.callTool(ToolCall.builder()
+            .name(toolName)
+            .arguments(arguments)
+            .build());
+    }
+}
+```
+
+### Claude Desktop Configuration
+
+Add to your Claude Desktop MCP configuration file:
+
+```json
+{
+  "mcpServers": {
+    "mcp-stateful-java": {
+      "transport": "streamable-http",
+      "endpoint": "http://localhost:8080/mcp",
+      "capabilities": ["tools", "resources", "prompts"]
+    }
+  }
+}
+```
+
+### Python Client Example
+
+```python
+import asyncio
+import aiohttp
+import json
+from typing import Dict, Any
+
+class StreamableHttpMcpClient:
+    def __init__(self, base_url: str, mcp_endpoint: str = "/mcp"):
+        self.base_url = base_url.rstrip('/')
+        self.mcp_endpoint = mcp_endpoint
+        self.session = None
+    
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+    
+    async def call_jsonrpc(self, method: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": method,
+            "params": params or {}
+        }
+        
+        async with self.session.post(
+            f"{self.base_url}{self.mcp_endpoint}",
+            json=payload,
+            headers={"Content-Type": "application/json"}
+        ) as response:
+            return await response.json()
+    
+    async def list_tools(self):
+        return await self.call_jsonrpc("tools/list")
+    
+    async def call_tool(self, name: str, arguments: Dict[str, Any]):
+        return await self.call_jsonrpc("tools/call", {
+            "name": name,
+            "arguments": arguments
+        })
+
+# Usage example
+async def main():
+    async with StreamableHttpMcpClient("http://localhost:8080") as client:
+        # Discover tools
+        tools_response = await client.list_tools()
+        print("Available tools:", tools_response)
+        
+        # Call calculator tool
+        result = await client.call_tool("calculate", {
+            "expression": "sqrt(16) + 2 * 3"
+        })
+        print("Calculation result:", result)
+
+# Run the client
+asyncio.run(main())
 ```
 
 ### 3. Test Multi-turn Conversations
@@ -222,6 +384,119 @@ Response: "Expression: sqrt(16) + 2 * 3\nResult: 10.0"
 
 ## 🔧 Configuration Details
 
+## 🌐 API Endpoints
+
+### Streamable HTTP MCP Endpoints
+
+| Method | Endpoint | Description | Content-Type |
+|--------|----------|-------------|--------------|
+| `POST` | `/mcp` | Main MCP protocol endpoint | `application/json` |
+| `GET` | `/sse` | Server-Sent Events stream | `text/event-stream` |
+| `GET` | `/actuator/health` | Health check | `application/json` |
+
+### JSON-RPC API Examples
+
+#### Initialize Connection
+```bash
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {}
+      },
+      "clientInfo": {
+        "name": "test-client",
+        "version": "1.0.0"
+      }
+    }
+  }'
+```
+
+#### List Available Tools
+```bash
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list",
+    "params": {}
+  }'
+```
+
+#### Call Calculator Tool
+```bash
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+      "name": "calculate",
+      "arguments": {
+        "expression": "sqrt(16) + 2 * 3",
+        "format": "decimal"
+      }
+    }
+  }'
+```
+
+#### Call File Creation Tool (Multi-turn)
+```bash
+# Step 1: Start file creation (missing parameters)
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 4,
+    "method": "tools/call",
+    "params": {
+      "name": "create_file",
+      "arguments": {}
+    }
+  }'
+
+# Response will include sessionId and request for path parameter
+
+# Step 2: Continue with path parameter
+curl -X POST http://localhost:8080/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 5,
+    "method": "tools/call",
+    "params": {
+      "name": "create_file",
+      "arguments": {
+        "sessionId": "session-uuid-from-step-1",
+        "path": "/tmp/test.txt"
+      }
+    }
+  }'
+```
+
+### Server-Sent Events
+
+Listen for real-time updates:
+
+```bash
+# Listen to SSE stream
+curl -H "Accept: text/event-stream" http://localhost:8080/sse
+
+# Expected events:
+# event: tool-progress
+# data: {"toolName": "calculate", "progress": 0.5, "message": "Processing..."}
+# 
+# event: tool-completed
+# data: {"toolName": "calculate", "result": "Calculation completed"}
+```
+
 ### Spring AI MCP Configuration
 
 ```yaml
@@ -232,17 +507,21 @@ spring:
   ai:
     mcp:
       server:
+        protocol: STREAMABLE  # Enable Streamable HTTP transport
         name: mcp-stateful-server-java
         version: 1.0.0
-        type: ASYNC  # WebFlux reactive server
+        type: SYNC  # Use SYNC for Streamable HTTP MCP server
         enabled: true
         stdio: false
-        instructions: "Reactive server with stateful tools for multi-turn conversations"
+        instructions: "Streamable HTTP server with stateful tools for multi-turn conversations"
         capabilities:
           tool: true
           resource: true
           prompt: true
           completion: true
+        streamable-http:
+          mcp-endpoint: /mcp  # Main MCP endpoint
+          keep-alive-interval: 30s  # Optional: enable keep-alive for SSE
 
 server:
   port: 8080
