@@ -21,19 +21,19 @@ public class McpStatefulToolApplication {
 
     @EventListener(ApplicationReadyEvent.class)
     public void serverReady() {
-        System.out.println("✅ MCP Server is ready for connections on http://localhost:8080/mcp");
-        System.out.println("📚 Available REST endpoints:");
-        System.out.println("  - POST /mcp/initialize");
-        System.out.println("  - POST /mcp/tools/list");
-        System.out.println("  - POST /mcp/tools/call");
-        System.out.println("  - GET  /mcp/health");
-        System.out.println("📡 Available Streaming endpoints:");
-        System.out.println("  - WebSocket: /mcp/ws (with SockJS fallback)");
-        System.out.println("  - WebSocket Direct: /mcp/ws-direct");
-        System.out.println("  - SSE: /mcp/stream?clientId=<id>");
-        System.out.println("  - Reactive: /mcp/reactive/tools/stream");
-        System.out.println("🔗 MCP Inspector can connect to:");
+        System.out.println("✅ Spring AI MCP Server is ready for connections");
+        System.out.println("⚠️  NOTE: Spring AI MCP 1.1.0-SNAPSHOT uses session-based transport");
+        System.out.println("🔗 For MCP Inspector, try connecting to:");
         System.out.println("  - WebSocket: ws://localhost:8080/mcp/ws");
         System.out.println("  - SSE: http://localhost:8080/mcp/stream?clientId=inspector");
+        System.out.println("  - REST (List Tools): POST http://localhost:8080/mcp/tools/list");
+        System.out.println("  - REST (Call Tool): POST http://localhost:8080/mcp/tools/call");
+        System.out.println("  - Health Check: http://localhost:8080/mcp/health");
+        System.out.println("📋 Spring AI MCP Protocol Features:");
+        System.out.println("  - Version: 2024-11-05");
+        System.out.println("  - Transport: WebFlux (WebSocket, SSE, Streamable HTTP)");
+        System.out.println("  - Tools: calculate, create_file, build_profile, list_sessions");
+        System.out.println("  - Stateful conversations: Enabled");
+        System.out.println("💡 Note: Spring AI MCP handles session management automatically");
     }
 }

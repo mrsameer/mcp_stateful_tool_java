@@ -2,15 +2,27 @@ spring:
   application:
     name: mcp-stateful-server-java
     
-  profiles:
-    active: default
+  ai:
+    mcp:
+      server:
+        name: mcp-stateful-server-java
+        version: 1.0.0
+        type: ASYNC  # Using ASYNC for WebFlux reactive server  
+        enabled: true  
+        stdio: false
+        instructions: "This reactive server provides stateful tools for mathematical calculations and file operations with multi-turn conversations"
+        
+        capabilities:
+          tool: true
+          resource: true
+          prompt: true
+          completion: true
 
 logging:
   level:
     com.example.mcpstateful: INFO
-    org.springframework.ai.mcp: DEBUG
-    org.springframework.web.socket: DEBUG
-    root: WARN
+    org.springframework.ai: DEBUG
+    root: INFO
     
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

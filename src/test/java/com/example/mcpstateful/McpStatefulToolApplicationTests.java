@@ -2,9 +2,10 @@ package com.example.mcpstateful;
 
 import com.example.mcpstateful.state.SessionManager;
 import com.example.mcpstateful.state.ToolSession;
-import com.example.mcpstateful.tools.CreateFileTool;
-import com.example.mcpstateful.tools.CalculatorTool;
-import com.example.mcpstateful.tools.ProfileBuilderTool;
+
+import com.example.mcpstateful.service.StatefulCalculatorService;
+import com.example.mcpstateful.service.StatefulFileService;
+import com.example.mcpstateful.service.StatefulProfileBuilderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,20 +21,22 @@ class McpStatefulToolApplicationTests {
     private SessionManager sessionManager;
 
     @Autowired
-    private CreateFileTool createFileTool;
+    private StatefulFileService statefulFileService;
 
     @Autowired
-    private CalculatorTool calculatorTool;
+    private StatefulCalculatorService statefulCalculatorService;
 
     @Autowired
-    private ProfileBuilderTool profileBuilderTool;
+    private StatefulProfileBuilderService statefulProfileBuilderService;
+
+    
 
     @Test
     void contextLoads() {
         assertThat(sessionManager).isNotNull();
-        assertThat(createFileTool).isNotNull();
-        assertThat(calculatorTool).isNotNull();
-        assertThat(profileBuilderTool).isNotNull();
+        assertThat(statefulFileService).isNotNull();
+        assertThat(statefulCalculatorService).isNotNull();
+        assertThat(statefulProfileBuilderService).isNotNull();
     }
 
     @Test
@@ -59,38 +62,36 @@ class McpStatefulToolApplicationTests {
     @Test
     void testCreateFileToolFlow() {
         // Test multi-turn file creation
-        Map<String, Object> args1 = Map.of();
-        String result1 = createFileTool.execute(args1);
+        String result1 = statefulFileService.createFile(null, null, null); // Initial call without params
         assertThat(result1).contains("file_path");
         assertThat(result1).contains("Session ID:");
 
-        // This would normally be extracted from the response in a real client
-        String sessionId = sessionManager.generateSessionId();
-        sessionManager.createSession(sessionId, "create_file", createFileTool.getRequiredParameters());
+        // Extract session ID from the response
+        String sessionId = extractSessionId(result1);
+        assertThat(sessionId).isNotNull();
 
-        Map<String, Object> args2 = Map.of(
-            "session_id", sessionId,
-            "file_path", "/tmp/test_java.txt"
-        );
-        String result2 = createFileTool.execute(args2);
+        String result2 = statefulFileService.createFile("/tmp/test_java.txt", null, sessionId);
         assertThat(result2).contains("content");
 
-        Map<String, Object> args3 = Map.of(
-            "session_id", sessionId,
-            "content", "Hello from Java MCP Server!"
-        );
-        String result3 = createFileTool.execute(args3);
+        String result3 = statefulFileService.createFile("/tmp/test_java.txt", "Hello from Java MCP Server!", sessionId);
         assertThat(result3).contains("Successfully created file");
+        assertThat(sessionManager.getSession(sessionId)).isNull(); // Session should be cleaned up
+    }
+
+    // Helper to extract session ID (simplified for this example)
+    private String extractSessionId(String response) {
+        int startIndex = response.indexOf("Session ID: `") + "Session ID: `".length();
+        int endIndex = response.indexOf("`", startIndex);
+        if (startIndex != -1 && endIndex != -1) {
+            return response.substring(startIndex, endIndex);
+        }
+        return null;
     }
 
     @Test
     void testCalculatorTool() {
         // Test single-turn calculation
-        Map<String, Object> args = Map.of(
-            "expression", "2 + 2 * 3",
-            "format", "decimal"
-        );
-        String result = calculatorTool.execute(args);
+        String result = statefulCalculatorService.calculate("2 + 2 * 3", "decimal", null);
         assertThat(result).contains("Expression: 2 + 2 * 3");
         assertThat(result).contains("Result: 8");
     }
@@ -98,9 +99,18 @@ class McpStatefulToolApplicationTests {
     @Test
     void testProfileBuilderFlow() {
         // Test profile building start
-        Map<String, Object> args1 = Map.of("name", "Test User");
-        String result1 = profileBuilderTool.execute(args1);
+        String result1 = statefulProfileBuilderService.buildProfile("Test User", null, null, null, null);
         assertThat(result1).contains("email");
         assertThat(result1).contains("Session ID:");
+
+        String sessionId = extractSessionId(result1);
+        assertThat(sessionId).isNotNull();
+
+        String result2 = statefulProfileBuilderService.buildProfile("Test User", "test@example.com", 30, null, sessionId);
+        assertThat(result2).contains("preferences");
+
+        String result3 = statefulProfileBuilderService.buildProfile("Test User", "test@example.com", 30, "reading, coding", sessionId);
+        assertThat(result3).contains("Profile created successfully!");
+        assertThat(sessionManager.getSession(sessionId)).isNull(); // Session should be cleaned up
     }
 }

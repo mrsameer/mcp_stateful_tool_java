@@ -1,55 +1,47 @@
 package com.example.mcpstateful.config;
 
-import com.example.mcpstateful.tools.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.mcpstateful.service.StatefulCalculatorService;
+import com.example.mcpstateful.service.StatefulFileService;
+import com.example.mcpstateful.service.StatefulProfileBuilderService;
+import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-
-import java.util.List;
 
 /**
- * Spring AI MCP Configuration.
+ * Spring AI MCP Configuration using the official approach.
  * 
- * This configuration leverages Spring AI's MCP autoconfiguration
- * to provide MCP protocol compliance with our stateful tools.
+ * This configuration uses Spring AI MCP's built-in ToolCallbackProvider
+ * with MethodToolCallbackProvider.builder() as shown in the official documentation.
  */
 @Configuration
 public class SpringAiMcpConfig {
 
-    @Autowired
-    private List<StatefulToolBase> statefulTools;
-
     /**
-     * Configure the MCP Server using Spring AI's autoconfiguration.
-     * This provides MCP protocol compliance with our stateful tools.
+     * Configure the MCP tools using the official Spring AI MCP approach.
+     * This creates a ToolCallbackProvider that automatically discovers @Tool methods.
      */
     @Bean
-    @Primary
-    public Object mcpServer() {
-        // Spring AI MCP autoconfiguration will handle the server setup
-        // We just need to ensure our tools are properly configured
-        
-        System.out.println("🚀 Spring AI MCP Server configured with " + statefulTools.size() + " tools:");
-        for (StatefulToolBase tool : statefulTools) {
-            System.out.println("  • " + tool.getToolName() + ": " + tool.getDescription());
-        }
+    public ToolCallbackProvider statefulMcpTools(
+            StatefulCalculatorService calculatorService,
+            StatefulFileService fileService,
+            StatefulProfileBuilderService profileBuilderService
+    ) {
+        System.out.println("🚀 Configuring Spring AI MCP Server with stateful tools:");
+        System.out.println("  • calculate: Mathematical calculations with multi-turn conversations");
+        System.out.println("  • create_file: File creation with progressive parameter collection");  
+        System.out.println("  • list_sessions: Session management and debugging");
+        System.out.println("  • build_profile: User profile creation with progressive parameter collection");
         
         System.out.println("📋 MCP Protocol Features:");
         System.out.println("   - Protocol version: 2024-11-05");
-        System.out.println("   - Tool registration: " + statefulTools.size() + " tools");
+        System.out.println("   - Transport: WebFlux SSE (Server-Sent Events)");
         System.out.println("   - Stateful conversations: Supported");
         System.out.println("   - Session management: Active");
         System.out.println("   - Multi-turn execution: Enabled");
         
-        return new Object(); // Placeholder - Spring AI will handle the actual server
-    }
-
-    /**
-     * Get all stateful tools for MCP integration.
-     */
-    @Bean
-    public List<StatefulToolBase> mcpTools() {
-        return statefulTools;
+        return MethodToolCallbackProvider.builder()
+                .toolObjects(calculatorService, fileService, profileBuilderService)
+                .build();
     }
 }
