@@ -25,7 +25,7 @@ public class McpStatefulToolApplication {
         System.out.println("⚠️  NOTE: Spring AI MCP 1.1.0-SNAPSHOT uses session-based transport");
         System.out.println("🔗 For MCP Inspector, try connecting to:");
         System.out.println("  - WebSocket: ws://localhost:8080/mcp/ws");
-        System.out.println("  - SSE: http://localhost:8080/mcp/stream?clientId=inspector");
+        System.out.println("  - SSE: http://localhost:8080/sse");
         System.out.println("  - REST (List Tools): POST http://localhost:8080/mcp/tools/list");
         System.out.println("  - REST (Call Tool): POST http://localhost:8080/mcp/tools/call");
         System.out.println("  - Health Check: http://localhost:8080/mcp/health");
