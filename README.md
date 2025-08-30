@@ -104,7 +104,7 @@ A **Spring AI MCP** server demonstrating **stateful multi-turn conversations** i
 ### Prerequisites
 - Java 21+
 - Maven 3.6+
-- Python 3.10+ (for client)
+- Python 3.10+ (for client - optional)
 
 ### Installation
 ```bash
@@ -116,6 +116,20 @@ cd mcp_stateful_tool_java
 # Build the project
 mvn clean install
 ```
+
+## ✅ Recent Fixes & Improvements
+
+### JSON-RPC Protocol Compliance
+- **Fixed ZodError issues**: All responses now have valid IDs (no more null IDs)
+- **Enhanced validation**: Comprehensive request validation for JSON-RPC 2.0 compliance
+- **MCP Inspector compatibility**: Full StreamableHttp transport support
+- **Error handling**: Proper error responses with valid message structure
+
+### Connection Management  
+- **StreamableHttp support**: Compatible with MCP Inspector's StreamableHttp transport
+- **Connection lifecycle**: Proper request/response cycles with connection closure
+- **Protocol flow**: Removed unsolicited messages, follows proper MCP handshake
+- **Session management**: Enhanced session handling for multi-turn conversations
 
 ### Usage
 
@@ -140,20 +154,29 @@ The server will start with Spring AI MCP integration enabled:
    - Multi-turn execution: Enabled
 ```
 
-#### 2. Connect with Client
+#### 2. Connect with MCP Inspector
 
-**Option A: Java Client (Recommended)**
+**Option A: MCP Inspector (Recommended)**
+```bash
+# Start MCP Inspector in a separate terminal
+npx @modelcontextprotocol/inspector
+
+# Connect to: http://localhost:8080/mcp/stream?clientId=inspector
+# The server is now fully compatible with MCP Inspector's StreamableHttp transport
+```
+
+**Option B: Java Client**
 ```bash
 # Interactive Java client
-./run-client.sh
+./scripts/run-client.sh
 # Choose option 1 for interactive client
 
 # Or automated demo client
-./run-client.sh
+./scripts/run-client.sh
 # Choose option 2 for automated demos
 ```
 
-**Option B: Python Client**
+**Option C: Python Client**
 Since this is a Spring AI MCP server, you can also use the Python client from the sibling project:
 
 ```bash
@@ -162,7 +185,7 @@ cd ../mcp_stateful_tool
 uv run python interactive_client.py
 ```
 
-**Option C: Direct Maven Execution**
+**Option D: Direct Maven Execution**
 ```bash
 # Interactive client
 mvn exec:java -Dexec.mainClass="com.example.mcpstateful.client.InteractiveMcpClient"
@@ -342,6 +365,35 @@ public McpServer mcpServer() {
 - **IDE Support**: Full IntelliJ IDEA / Eclipse support
 - **Spring AI MCP**: Official Spring MCP integration
 - **Protocol Compliance**: Full MCP specification support
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**ZodError: Expected string, received null**
+- ✅ **Fixed**: All JSON-RPC responses now generate valid IDs
+- ✅ **Fixed**: Added comprehensive validation for required fields
+- ✅ **Fixed**: Proper error handling with valid message structure
+
+**MCP Inspector Connection Issues**
+- ✅ **Fixed**: StreamableHttp transport compatibility 
+- ✅ **Fixed**: Proper request/response cycles with connection closure
+- ✅ **Fixed**: Removed unsolicited initialization messages
+
+**"No connection established for request ID" Error**
+- ✅ **Fixed**: Enhanced connection lifecycle management
+- ✅ **Fixed**: Proper MCP protocol handshake implementation
+
+### Server Status Check
+```bash
+# Check if server is running
+curl http://localhost:8080/mcp/health
+
+# Test MCP protocol compliance
+curl -X POST "http://localhost:8080/mcp/stream?clientId=test" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}'
+```
 
 ## 📚 Documentation
 

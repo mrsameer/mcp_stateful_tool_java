@@ -6,8 +6,14 @@ echo "================================="
 
 lsof -ti:8080 | xargs kill -9 2>/dev/null || echo "   No existing processes on port 8080"
 
-# Set JAVA_HOME to a valid JDK
-export JAVA_HOME="/Users/shaiksameer/Library/Java/JavaVirtualMachines/openjdk-21.0.2/Contents/Home"
+# Set JAVA_HOME dynamically on macOS, fallback to existing if set
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    if command -v /usr/libexec/java_home &> /dev/null; then
+        export JAVA_HOME=$(/usr/libexec/java_home)
+    fi
+elif [ -z "$JAVA_HOME" ]; then
+    echo "⚠️  JAVA_HOME not set. Please set JAVA_HOME environment variable."
+fi
 
 # Check if Java is installed
 if ! command -v java &> /dev/null; then
@@ -68,9 +74,16 @@ case "${1:-run}" in
         echo "  $0 test      - Run tests"
         echo "  $0 build     - Build project"
         echo ""
-        echo "Client Connection:"
-        echo "  Use the Python client from ../mcp_stateful_tool:"
-        echo "  cd ../mcp_stateful_tool && uv run python interactive_client.py"
+        echo "Client Connection Options:"
+        echo "  1. MCP Inspector (Recommended):"
+        echo "     npx @modelcontextprotocol/inspector"
+        echo "     Connect to: http://localhost:8080/mcp/stream?clientId=inspector"
+        echo ""
+        echo "  2. Java Client:"
+        echo "     ./scripts/run-client.sh"
+        echo ""
+        echo "  3. Python client from ../mcp_stateful_tool:"
+        echo "     cd ../mcp_stateful_tool && uv run python interactive_client.py"
         ;;
     *)
         echo "❌ Unknown command: $1"
