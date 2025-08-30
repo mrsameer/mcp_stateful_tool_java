@@ -45,6 +45,21 @@ public class McpWebSocketController {
     @SendTo("/mcp/stream/response")
     public Map<String, Object> handleToolCall(Map<String, Object> message) {
         try {
+            // Validate required JSON-RPC fields
+            if (message == null) {
+                throw new IllegalArgumentException("Message cannot be null");
+            }
+            
+            Object messageId = message.get("id");
+            if (messageId == null) {
+                messageId = System.currentTimeMillis(); // Generate a fallback ID
+            }
+            
+            String method = (String) message.get("method");
+            if (method == null || method.isEmpty()) {
+                throw new IllegalArgumentException("Method field is required");
+            }
+            
             @SuppressWarnings("unchecked")
             Map<String, Object> params = (Map<String, Object>) message.get("params");
             
@@ -73,10 +88,10 @@ public class McpWebSocketController {
                 result = "Unknown tool: " + name;
             }
 
-            // Stream the result to all connected clients
+            // Stream the result to all connected clients            
             Map<String, Object> response = Map.of(
                 "jsonrpc", "2.0",
-                "id", message.get("id"),
+                "id", messageId,
                 "result", Map.of(
                     "content", List.of(
                         Map.of("type", "text", "text", result)
@@ -93,9 +108,14 @@ public class McpWebSocketController {
             return response;
 
         } catch (Exception e) {
+            Object messageId = message != null ? message.get("id") : null;
+            if (messageId == null) {
+                messageId = System.currentTimeMillis(); // Generate a fallback ID
+            }
+            
             Map<String, Object> error = Map.of(
                 "jsonrpc", "2.0",
-                "id", message.get("id"),
+                "id", messageId,
                 "error", Map.of(
                     "code", -32603,
                     "message", "Internal error: " + e.getMessage()
@@ -184,6 +204,16 @@ public class McpWebSocketController {
      */
     private void processIncomingMessage(String clientId, Map<String, Object> message, SseEmitter emitter) {
         try {
+            // Validate message structure
+            if (message == null) {
+                throw new IllegalArgumentException("Message cannot be null");
+            }
+            
+            Object messageId = message.get("id");
+            if (messageId == null) {
+                messageId = System.currentTimeMillis(); // Generate a fallback ID
+            }
+            
             // Handle MCP protocol messages
             if (message.containsKey("method") && "tools/call".equals(message.get("method"))) {
                 @SuppressWarnings("unchecked")
@@ -211,10 +241,10 @@ public class McpWebSocketController {
                         result = tool.call("{}");
                     }
 
-                    // Send result back to the client
+                    // Send result back to the client                   
                     Map<String, Object> response = Map.of(
                         "jsonrpc", "2.0",
-                        "id", message.get("id"),
+                        "id", messageId,
                         "result", Map.of(
                             "content", List.of(
                                 Map.of("type", "text", "text", result)
@@ -227,10 +257,10 @@ public class McpWebSocketController {
                         .data(objectMapper.writeValueAsString(response)));
 
                 } else {
-                    // Send error for unknown tool
+                    // Send error for unknown tool                    
                     Map<String, Object> error = Map.of(
                         "jsonrpc", "2.0",
-                        "id", message.get("id"),
+                        "id", messageId,
                         "error", Map.of(
                             "code", -32601,
                             "message", "Method not found: " + name
@@ -244,9 +274,14 @@ public class McpWebSocketController {
             }
         } catch (Exception e) {
             try {
+                Object messageId = message != null ? message.get("id") : null;
+                if (messageId == null) {
+                    messageId = System.currentTimeMillis(); // Generate a fallback ID
+                }
+                
                 Map<String, Object> error = Map.of(
                     "jsonrpc", "2.0",
-                    "id", message.get("id"),
+                    "id", messageId,
                     "error", Map.of(
                         "code", -32603,
                         "message", "Internal error: " + e.getMessage()
